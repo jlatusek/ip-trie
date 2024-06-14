@@ -1,12 +1,19 @@
-#include "CppUTest/TestHarness.h"
+#include "unity.h"
 
-extern "C" {
-#include "Trie.h"
-};
+#include "ip.h"
 
-TEST_GROUP(TrieTest){};
+void setUp(void) {};
 
-TEST(TrieTest, Create)
+void tearDown(void) {};
+
+void test(void)
 {
-    FAIL("NO FAIL ME!");
+    TEST_FAIL();
+}
+
+int main(void)
+{
+    UNITY_BEGIN();
+    RUN_TEST(test);
+    return UNITY_END();
 }
