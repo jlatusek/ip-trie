@@ -3,10 +3,11 @@ project(ip_trie C CXX)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD 23)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cpputest)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/Unity)
 
 add_library(ip_trie_lib OBJECT
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Trie.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip.c
 )
 
 target_include_directories(ip_trie_lib PUBLIC
@@ -20,16 +21,20 @@ target_link_libraries(ip_trie
 
 include(CTest)
 
-add_executable(ip_trie_test
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/trie_test.cpp
-)
+add_executable(trie_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/trie_test.c)
+add_executable(ip_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/ip_test.c)
 
-target_link_libraries(ip_trie_test PUBLIC
+
+target_link_libraries(trie_test PUBLIC
         ip_trie_lib
-        CppUTest::CppUTest
-        CppUTest::CppUTestExt
+        unity
 )
 
-add_test(NAME ip_trie_test COMMAND ip_trie_test)
+target_link_libraries(ip_test PUBLIC
+        ip_trie_lib
+        unity
+)
+
+add_test(NAME trie_test COMMAND trie_test)
+add_test(NAME ip_test COMMAND ip_test)
 

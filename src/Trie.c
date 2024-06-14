@@ -1,6 +1,7 @@
 #include "Trie.h"
 
 #include "CodeUtils.h"
+#include "ip.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,10 +27,7 @@ Trie *trie_init()
 
 int trie_free(Trie *trie)
 {
-    if (trie == nullptr || trie_has_child(trie))
-    {
-        return -1;
-    }
+    VerifyOrReturn(trie == nullptr || trie_has_child(trie), TRIE_ERROR);
     free(trie);
     trie = nullptr;
     return 0;
@@ -48,17 +46,17 @@ int trie_add(Trie *trie, uint32_t base, char mask)
         root = root->children[bit];
     }
     root->used = true;
-    return 0;
+    return TRIE_OK;
 }
 
 int trie_del(Trie *trie, uint32_t base, char mask)
 {
-    Trie *trie_path[32] = {};
+    Trie *trie_path[IP_LEN] = {};
     Trie *root = trie;
-    for (uint i = 0; i < mask; ++i)
+    for (int i = IP_LEN - 1; i >= 0; --i)
     {
-        uint bit = (base << i) & 0x01;
-        VerifyOrReturn(root->children[bit] == nullptr, -1);
+        uint bit = (base >> i) & 0x01;
+        VerifyOrReturn(root->children[bit] == nullptr, TRIE_ERROR);
         root = root->children[bit];
         trie_path[i] = root;
     }
@@ -69,7 +67,12 @@ int trie_del(Trie *trie, uint32_t base, char mask)
         {
             trie_free(trie_path[i]);
         }
+        else
+        {
+            break;
+        }
     }
+    return 0;
 }
 
 char trie_check(const Trie *trie, uint32_t ip)
@@ -82,9 +85,9 @@ int trie_clean(Trie *trie)
     {
         if (trie->children[i])
         {
-            VerifyOrReturn(trie_clean(trie->children[i]) != 0, -1);
+            VerifyOrReturn(trie_clean(trie->children[i]) != 0, TRIE_ERROR);
         }
     }
     VerifyOrReturnWithMsg(trie_free(trie) != 0, -1, "Failed to clean trie :(");
-    return 0;
+    return TRIE_OK;
 }

@@ -2,9 +2,13 @@
 
 #include <stdint.h>
 
+constexpr unsigned int MAX_CHILD_COUNT=2;
+constexpr int TRIE_OK=0;
+constexpr int TRIE_ERROR=-1;
+
 struct Trie_t
 {
-    struct Trie_t *children[2];
+    struct Trie_t *children[MAX_CHILD_COUNT];
     bool used;
 };
 
