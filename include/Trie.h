@@ -5,6 +5,7 @@
 constexpr unsigned int MAX_CHILD_COUNT = 2;
 constexpr int TRIE_OK = 0;
 constexpr int TRIE_ERROR = -1;
+constexpr int TRIE_HAS_CHILDREN = -2;
 
 struct Trie_t
 {
@@ -15,7 +16,7 @@ struct Trie_t
 typedef struct Trie_t Trie;
 
 Trie *trie_init();
-int trie_deinit(Trie *trie);
+int trie_deinit(Trie **trie);
 
 int trie_add(Trie *trie, uint32_t base, char mask);
 int trie_del(Trie *trie, uint32_t base, char mask);

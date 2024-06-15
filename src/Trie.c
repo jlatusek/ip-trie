@@ -25,11 +25,12 @@ Trie *trie_init()
     return trie;
 }
 
-int trie_free(Trie *trie)
+int trie_free(Trie **trie)
 {
-    VerifyOrReturn(trie == nullptr || trie_has_child(trie), TRIE_ERROR);
-    free(trie);
-    trie = nullptr;
+    VerifyOrReturnWithMsg(trie != nullptr, TRIE_ERROR, "Provided trie is nullptr");
+    VerifyOrReturnWithMsg(!trie_has_child(*trie), TRIE_HAS_CHILDREN, "Cannot remove trie, there are children");
+    free(*trie);
+    *trie = nullptr;
     return 0;
 }
 
@@ -52,25 +53,39 @@ int trie_add(Trie *trie, uint32_t base, char mask)
 
 int trie_del(Trie *trie, uint32_t base, char mask)
 {
-    Trie *trie_path[IP_LEN] = {};
+    VerifyOrReturnWithMsg((uint) mask < IP_LEN, TRIE_ERROR, "Value passed as mask is too high");
+
+    Trie *trie_path[IP_LEN + 1] = {trie};
     Trie *root = trie;
-    for (int i = IP_LEN - 1; i >= 0; --i)
+    for (int i = 0; i < mask; ++i)
     {
-        uint bit = (base >> i) & 0x01;
-        VerifyOrReturn(root->children[bit] == nullptr, TRIE_ERROR);
-        root = root->children[bit];
-        trie_path[i] = root;
+        uint bit = (base >> (IP_LEN - 1 - i)) & 0x01;
+        Trie *child = root->children[bit];
+        VerifyOrReturnWithMsg(child != nullptr, TRIE_ERROR, "Provided ip do not exist in trie structure");
+        root = child;
+        trie_path[i + 1] = root;
     }
     root->used = false;
-    for (int i = mask - 1; i >= 0; --i)
+    for (int i = mask; i >= 0; --i)
     {
-        if (!trie_has_child(trie_path[i]) && !trie_path[i]->used)
+        if (!trie_has_child(trie_path[i]) && !(trie_path[i]->used))
         {
-            trie_free(trie_path[i]);
+            if (i > 0)
+            {
+                for (uint j = 0; j < MAX_CHILD_COUNT; ++j)
+                {
+                    printf("%p == %p\n", (void *)trie_path[i - 1]->children[j], (void *)trie_path[i]);
+                    if (trie_path[i - 1]->children[j] == trie_path[i])
+                    {
+                        trie_path[i - 1]->children[j] = nullptr;
+                    }
+                }
+            }
+            trie_free(&trie_path[i]);
         }
         else
         {
-            break;
+            //            break;
         }
     }
     return 0;
@@ -83,13 +98,13 @@ char trie_check(const Trie *trie, uint32_t ip)
     return 0;
 }
 
-int trie_deinit(Trie *trie)
+int trie_deinit(Trie **trie)
 {
     for (uint i = 0; i < MAX_CHILD_COUNT; ++i)
     {
-        if (trie->children[i])
+        if ((*trie)->children[i])
         {
-            VerifyOrReturn(trie_deinit(trie->children[i]) != TRIE_OK, TRIE_ERROR);
+            VerifyOrReturn(trie_deinit(&(*trie)->children[i]) != TRIE_OK, TRIE_ERROR);
         }
     }
     VerifyOrReturnWithMsg(trie_free(trie) != TRIE_OK, TRIE_ERROR, "Failed to clean trie :(");

@@ -23,13 +23,28 @@ void test_add_ip(void)
     TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, ip, 24));
     TEST_ASSERT_EQUAL(IP_OK, str_to_ip("10.10.16.192", &ip));
     TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, ip, 32));
-    TEST_ASSERT_EQUAL(TRIE_OK,trie_print(trie));
+    TEST_ASSERT_EQUAL(TRIE_OK, trie_print(trie));
+    //    TODO Add cleanup :))
 }
 
+void test_del_ip(void)
+{
+    Trie *trie = trie_init();
+    uint32_t ip;
+    TEST_ASSERT_EQUAL(IP_OK, str_to_ip("255.0.0.0", &ip));
+    TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, ip, 8));
+    printf("Trie before del:\n");
+    TEST_ASSERT_EQUAL(TRIE_OK, trie_print(trie));
+
+    TEST_ASSERT_EQUAL(TRIE_OK, trie_del(trie, ip, 8));
+    printf("Trie after del:\n");
+    TEST_ASSERT_EQUAL(TRIE_OK, trie_print(trie));
+}
 
 int main(void)
 {
     UNITY_BEGIN();
     RUN_TEST(test_add_ip);
+    RUN_TEST(test_del_ip);
     return UNITY_END();
 }
