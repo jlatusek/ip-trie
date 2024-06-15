@@ -3,6 +3,8 @@ project(ip_trie C)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic")
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/Unity)
 
 add_library(ip_trie_lib OBJECT

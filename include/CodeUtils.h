@@ -5,6 +5,7 @@
     {                                                                                                                  \
         if (!(condition))                                                                                              \
         {                                                                                                              \
+            fprintf(stderr, "%s:%d Program died", __FILE__, __LINE__);                                                 \
             abort();                                                                                                   \
         }                                                                                                              \
     } while (0)
@@ -23,7 +24,8 @@
     {                                                                                                                  \
         if (!(condition))                                                                                              \
         {                                                                                                              \
-            fprintf(stderr, error_msg, ##__VA_ARGS__);                                                                 \
+            fprintf(stderr, "%s:%d ", __FILE__, __LINE__);                                                              \
+            fprintf(stderr, error_msg "\n", ##__VA_ARGS__);                                                            \
             return return_value;                                                                                       \
         }                                                                                                              \
     } while (0)
