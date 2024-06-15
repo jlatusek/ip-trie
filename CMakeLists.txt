@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.20)
-project(ip_trie C CXX)
+cmake_minimum_required(VERSION 3.24)
+project(ip_trie C)
 
 set(CMAKE_C_STANDARD 23)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/Unity)
 
 add_library(ip_trie_lib OBJECT
