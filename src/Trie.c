@@ -107,7 +107,8 @@ int trie_deinit(Trie **trie)
 static int _trie_foreach_node(const Trie *trie, void (*callback)(uint32_t ip_addr, uint8_t mask), uint32_t ip_addr,
                               uint8_t depth)
 {
-    VerifyOrReturnErrorWithMsg(depth <= IP_LEN, TRIE_ERROR, "Trie print gone to deep: %d", depth);
+    VerifyOrReturnErrorWithMsg(trie != nullptr, TRIE_ERROR, "Provided trie is nullptr");
+    VerifyOrReturnErrorWithMsg(depth <= IP_LEN, TRIE_ERROR, "Trie foreach gone to deep: %d", depth);
     if (trie->used)
     {
         callback(ip_addr << (IP_LEN - depth), depth);
