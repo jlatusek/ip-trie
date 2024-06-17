@@ -20,8 +20,8 @@ Trie *trie_init()
 
 int trie_free(Trie **trie)
 {
-    VerifyOrReturnWithMsg(trie != nullptr, TRIE_ERROR, "Provided trie is nullptr");
-    VerifyOrReturnWithMsg(!trie_has_child(*trie), TRIE_HAS_CHILDREN, "Cannot remove trie, there are children");
+    VerifyOrReturnErrorWithMsg(trie != nullptr, TRIE_ERROR, "Provided trie is nullptr");
+    VerifyOrReturnErrorWithMsg(!trie_has_child(*trie), TRIE_HAS_CHILDREN, "Cannot remove trie, there are children");
     free(*trie);
     *trie = nullptr;
     return 0;
@@ -46,7 +46,7 @@ int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 
 int trie_del(Trie *trie, uint32_t base, uint8_t mask)
 {
-    VerifyOrReturnWithMsg((uint)mask < IP_LEN, TRIE_ERROR, "Value passed as mask is too high");
+    VerifyOrReturnErrorWithMsg((uint)mask < IP_LEN, TRIE_ERROR, "Value passed as mask is too high");
 
     int ret = 0;
 
@@ -56,29 +56,25 @@ int trie_del(Trie *trie, uint32_t base, uint8_t mask)
     {
         uint bit = (base >> (IP_LEN - 1 - i)) & 0x01;
         Trie *child = root->children[bit];
-        VerifyOrReturnWithMsg(child != nullptr, TRIE_ERROR, "Provided ip do not exist in trie structure");
+        VerifyOrReturnErrorWithMsg(child != nullptr, TRIE_ERROR, "Provided ip do not exist in trie structure");
         root = child;
         trie_path[i + 1] = root;
     }
-    VerifyOrReturnWithMsg(root->used, TRIE_ERROR, "Provided ip wasn't saved in trie structure");
+    VerifyOrReturnErrorWithMsg(root->used, TRIE_ERROR, "Provided ip wasn't saved in trie structure");
     root->used = false;
-    for (int i = mask; i >= 0; --i)
+    for (int i = mask; i >= 1; --i)
     {
         if (!trie_has_child(trie_path[i]) && !(trie_path[i]->used))
         {
-            if (i > 0)
+            for (uint j = 0; j < MAX_CHILD_COUNT; ++j)
             {
-                for (uint j = 0; j < MAX_CHILD_COUNT; ++j)
+                if (trie_path[i - 1]->children[j] == trie_path[i])
                 {
-                    printf("%p == %p\n", (void *)trie_path[i - 1]->children[j], (void *)trie_path[i]);
-                    if (trie_path[i - 1]->children[j] == trie_path[i])
-                    {
-                        trie_path[i - 1]->children[j] = nullptr;
-                    }
+                    trie_path[i - 1]->children[j] = nullptr;
                 }
             }
             ret = trie_free(&trie_path[i]);
-            VerifyOrReturn(ret == 0, ret);
+            VerifyOrReturnError(ret == 0, ret);
         }
         else
         {
@@ -101,34 +97,47 @@ int trie_deinit(Trie **trie)
     {
         if ((*trie)->children[i])
         {
-            VerifyOrReturn(trie_deinit(&(*trie)->children[i]) != TRIE_OK, TRIE_ERROR);
+            VerifyOrReturnError(trie_deinit(&(*trie)->children[i]) != TRIE_OK, TRIE_ERROR);
         }
     }
-    VerifyOrReturnWithMsg(trie_free(trie) != TRIE_OK, TRIE_ERROR, "Failed to clean trie :(");
+    VerifyOrReturnErrorWithMsg(trie_free(trie) != TRIE_OK, TRIE_ERROR, "Failed to clean trie :(");
     return TRIE_OK;
 }
 
-static int node_print(const Trie *trie, uint32_t ip_addr, uint8_t depth)
+static int _trie_foreach_node(const Trie *trie, void (*callback)(uint32_t ip_addr, uint8_t mask), uint32_t ip_addr,
+                              uint8_t depth)
 {
-    VerifyOrReturnWithMsg(depth <= IP_LEN, TRIE_ERROR, "Trie print gone to deep: %d", depth);
+    VerifyOrReturnErrorWithMsg(depth <= IP_LEN, TRIE_ERROR, "Trie print gone to deep: %d", depth);
     if (trie->used)
     {
-        char ip_str[IP_STR_EXPECTED_LEN] = {};
-        VerifyOrReturnWithMsg(ip_to_str(ip_addr << (IP_LEN - depth), ip_str, IP_STR_EXPECTED_LEN) == IP_OK, TRIE_ERROR,
-                              "Error during printing trie :((");
-        printf("ip: %s/%d\n", ip_str, depth);
+        callback(ip_addr << (IP_LEN - depth), depth);
     }
     for (uint i = 0; i < MAX_CHILD_COUNT; ++i)
     {
         if (trie->children[i] != nullptr)
         {
-            VerifyOrReturn(node_print(trie->children[i], ((ip_addr << 1) | i), depth + 1) == TRIE_OK, TRIE_ERROR);
+            VerifyOrReturnError(_trie_foreach_node(trie->children[i], callback, ((ip_addr << 1) | i), depth + 1) ==
+                                    TRIE_OK,
+                                TRIE_ERROR);
         }
     }
     return TRIE_OK;
 }
 
+int trie_foreach(const Trie *trie, void (*callback)(uint32_t ip_addr, uint8_t mask))
+{
+    return _trie_foreach_node(trie, callback, 0, 0);
+}
+
+static void _print_ip(uint32_t ip_addr, uint8_t mask)
+{
+    char ip_str[IP_STR_EXPECTED_LEN] = {};
+    VerifyOrReturnWithMsg(ip_to_str(ip_addr, ip_str, IP_STR_EXPECTED_LEN) == IP_OK,
+                          "Error during generating string from ip");
+    printf("ip: %s/%d\n", ip_str, mask);
+}
+
 int trie_print(const Trie *trie)
 {
-    return node_print(trie, 0, 0);
+    return trie_foreach(trie, _print_ip);
 }
