@@ -5,12 +5,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-static const Trie default_trie = {
-    .children = {},
-    .used = false,
-};
 
 static bool trie_has_child(Trie *trie)
 {
@@ -19,9 +13,8 @@ static bool trie_has_child(Trie *trie)
 
 Trie *trie_init()
 {
-    Trie *trie = malloc(sizeof(Trie));
+    Trie *trie = calloc(1, sizeof(Trie));
     VerifyOrDie(trie != nullptr);
-    memcpy(trie, &default_trie, sizeof(Trie));
     return trie;
 }
 
@@ -34,7 +27,7 @@ int trie_free(Trie **trie)
     return 0;
 }
 
-int trie_add(Trie *trie, uint32_t base, char mask)
+int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 {
     Trie *root = trie;
     for (int i = 0; i < mask; ++i)
@@ -51,9 +44,11 @@ int trie_add(Trie *trie, uint32_t base, char mask)
     return TRIE_OK;
 }
 
-int trie_del(Trie *trie, uint32_t base, char mask)
+int trie_del(Trie *trie, uint32_t base, uint8_t mask)
 {
-    VerifyOrReturnWithMsg((uint) mask < IP_LEN, TRIE_ERROR, "Value passed as mask is too high");
+    VerifyOrReturnWithMsg((uint)mask < IP_LEN, TRIE_ERROR, "Value passed as mask is too high");
+
+    int ret = 0;
 
     Trie *trie_path[IP_LEN + 1] = {trie};
     Trie *root = trie;
@@ -65,6 +60,7 @@ int trie_del(Trie *trie, uint32_t base, char mask)
         root = child;
         trie_path[i + 1] = root;
     }
+    VerifyOrReturnWithMsg(root->used, TRIE_ERROR, "Provided ip wasn't saved in trie structure");
     root->used = false;
     for (int i = mask; i >= 0; --i)
     {
@@ -81,14 +77,15 @@ int trie_del(Trie *trie, uint32_t base, char mask)
                     }
                 }
             }
-            trie_free(&trie_path[i]);
+            ret = trie_free(&trie_path[i]);
+            VerifyOrReturn(ret == 0, ret);
         }
         else
         {
-            //            break;
+            break;
         }
     }
-    return 0;
+    return ret;
 }
 
 char trie_check(const Trie *trie, uint32_t ip)

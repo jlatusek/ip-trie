@@ -18,7 +18,7 @@ typedef struct Trie_t Trie;
 Trie *trie_init();
 int trie_deinit(Trie **trie);
 
-int trie_add(Trie *trie, uint32_t base, char mask);
-int trie_del(Trie *trie, uint32_t base, char mask);
+int trie_add(Trie *trie, uint32_t base, uint8_t mask);
+int trie_del(Trie *trie, uint32_t base, uint8_t mask);
 char trie_check(const Trie *trie, uint32_t ip);
 int trie_print(const Trie *trie);
