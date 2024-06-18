@@ -10,16 +10,20 @@ constexpr unsigned int MAX_EXPECTED_IP = 32;
 static uint32_t expected_ip[MAX_EXPECTED_IP];
 static uint8_t expected_mask[MAX_EXPECTED_IP];
 static bool ip_found[MAX_EXPECTED_IP];
+static Trie *trie;
 
 void setUp(void)
 {
     memset(expected_ip, 0, sizeof(expected_ip));
     memset(expected_mask, 0, sizeof(expected_mask));
     memset(ip_found, 0, sizeof(ip_found));
+    trie = trie_init();
 }
 
 void tearDown(void)
 {
+    TEST_ASSERT_EQUAL(TRIE_OK,trie_deinit(trie));
+    trie = NULL;
 }
 
 void ip_callback(uint32_t ip, uint8_t mask)
@@ -43,8 +47,6 @@ void ip_callback(uint32_t ip, uint8_t mask)
 
 void test_add_ip(void)
 {
-    Trie *trie = trie_init();
-
     TEST_ASSERT_EQUAL(IP_OK, str_to_ip("255.0.0.0", &expected_ip[0]));
     expected_mask[0] = 8;
     TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, expected_ip[0], expected_mask[0]));
@@ -59,13 +61,10 @@ void test_add_ip(void)
     TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, expected_ip[3], expected_mask[3]));
     TEST_ASSERT_EQUAL(TRIE_OK, trie_foreach(trie, ip_callback));
     TEST_ASSERT_EACH_EQUAL_CHAR(1, ip_found, 4);
-    //    TODO Add cleanup :))
 }
 
 void test_add_ip_2(void)
 {
-    Trie *trie = trie_init();
-
     for (unsigned int i = 0; i < MAX_EXPECTED_IP; i++)
     {
         expected_mask[i] = i;
@@ -79,8 +78,6 @@ void test_add_ip_2(void)
 
 void test_del_ip(void)
 {
-    Trie *trie = trie_init();
-
     TEST_ASSERT_EQUAL(IP_OK, str_to_ip("255.0.0.0", &expected_ip[0]));
     expected_mask[0] = 8;
     TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, expected_ip[0], expected_mask[0]));

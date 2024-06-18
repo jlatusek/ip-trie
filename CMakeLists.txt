@@ -39,8 +39,3 @@ target_link_libraries(ip_test PUBLIC
 
 add_test(NAME trie_test COMMAND trie_test)
 add_test(NAME ip_test COMMAND ip_test)
-
-add_custom_target(check
-        COMMAND trie_test ip_test
-        DEPENDS trie_test ip_test
-)

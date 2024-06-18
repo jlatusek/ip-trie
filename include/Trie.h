@@ -16,7 +16,7 @@ struct Trie_t
 typedef struct Trie_t Trie;
 
 Trie *trie_init();
-int trie_deinit(Trie **trie);
+int trie_deinit(Trie *trie);
 
 int trie_add(Trie *trie, uint32_t base, uint8_t mask);
 int trie_del(Trie *trie, uint32_t base, uint8_t mask);

@@ -8,23 +8,22 @@
 
 static bool trie_has_child(Trie *trie)
 {
-    return trie->children[0] != nullptr || trie->children[1] != nullptr;
+    return trie->children[0] != NULL || trie->children[1] != NULL;
 }
 
 Trie *trie_init()
 {
     Trie *trie = calloc(1, sizeof(Trie));
-    VerifyOrDie(trie != nullptr);
+//    VerifyOrDie(trie != NULL);
     return trie;
 }
 
-int trie_free(Trie **trie)
+int trie_free(Trie *trie)
 {
-    VerifyOrReturnErrorWithMsg(trie != nullptr, TRIE_ERROR, "Provided trie is nullptr");
-    VerifyOrReturnErrorWithMsg(!trie_has_child(*trie), TRIE_HAS_CHILDREN, "Cannot remove trie, there are children");
-    free(*trie);
-    *trie = nullptr;
-    return 0;
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
+    VerifyOrReturnErrorWithMsg(!trie_has_child(trie), TRIE_HAS_CHILDREN, "Cannot remove trie, there are children");
+    free(trie);
+    return TRIE_OK;
 }
 
 int trie_add(Trie *trie, uint32_t base, uint8_t mask)
@@ -34,7 +33,7 @@ int trie_add(Trie *trie, uint32_t base, uint8_t mask)
     {
         int bit_index = (IP_LEN - 1 - i);
         uint bit = (base >> bit_index) & 0x01;
-        if (root->children[bit] == nullptr)
+        if (root->children[bit] == NULL)
         {
             root->children[bit] = trie_init();
         }
@@ -46,9 +45,9 @@ int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 
 int trie_del(Trie *trie, uint32_t base, uint8_t mask)
 {
-    VerifyOrReturnErrorWithMsg((uint)mask < IP_LEN, TRIE_ERROR, "Value passed as mask is too high");
+    VerifyOrReturnErrorWithMsg(mask < IP_LEN, TRIE_ERROR, "Value passed as mask is too high");
 
-    int ret = 0;
+    int ret = TRIE_OK;
 
     Trie *trie_path[IP_LEN + 1] = {trie};
     Trie *root = trie;
@@ -56,7 +55,7 @@ int trie_del(Trie *trie, uint32_t base, uint8_t mask)
     {
         uint bit = (base >> (IP_LEN - 1 - i)) & 0x01;
         Trie *child = root->children[bit];
-        VerifyOrReturnErrorWithMsg(child != nullptr, TRIE_ERROR, "Provided ip do not exist in trie structure");
+        VerifyOrReturnErrorWithMsg(child != NULL, TRIE_ERROR, "Provided ip do not exist in trie structure");
         root = child;
         trie_path[i + 1] = root;
     }
@@ -70,10 +69,10 @@ int trie_del(Trie *trie, uint32_t base, uint8_t mask)
             {
                 if (trie_path[i - 1]->children[j] == trie_path[i])
                 {
-                    trie_path[i - 1]->children[j] = nullptr;
+                    trie_path[i - 1]->children[j] = NULL;
                 }
             }
-            ret = trie_free(&trie_path[i]);
+            ret = trie_free(trie_path[i]);
             VerifyOrReturnError(ret == 0, ret);
         }
         else
@@ -91,23 +90,32 @@ char trie_check(const Trie *trie, uint32_t ip)
     return 0;
 }
 
-int trie_deinit(Trie **trie)
+static int _trie_deinit(Trie *trie, uint depth)
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
+    VerifyOrReturnErrorWithMsg(depth <= IP_LEN, TRIE_ERROR, "Trie deinit gone to deep: %d", depth);
     for (uint i = 0; i < MAX_CHILD_COUNT; ++i)
     {
-        if ((*trie)->children[i])
+        if (trie->children[i] != NULL)
         {
-            VerifyOrReturnError(trie_deinit(&(*trie)->children[i]) != TRIE_OK, TRIE_ERROR);
+            VerifyOrReturnError(_trie_deinit(trie->children[i], depth + 1) == TRIE_OK, TRIE_ERROR);
+            trie->children[i] = NULL;
         }
     }
-    VerifyOrReturnErrorWithMsg(trie_free(trie) != TRIE_OK, TRIE_ERROR, "Failed to clean trie :(");
+    int ret = trie_free(trie);
+    VerifyOrReturnErrorWithMsg(ret == TRIE_OK, TRIE_ERROR, "Failed to clean trie :(");
     return TRIE_OK;
+}
+
+int trie_deinit(Trie *trie)
+{
+    return _trie_deinit(trie, 0);
 }
 
 static int _trie_foreach_node(const Trie *trie, void (*callback)(uint32_t ip_addr, uint8_t mask), uint32_t ip_addr,
                               uint8_t depth)
 {
-    VerifyOrReturnErrorWithMsg(trie != nullptr, TRIE_ERROR, "Provided trie is nullptr");
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     VerifyOrReturnErrorWithMsg(depth <= IP_LEN, TRIE_ERROR, "Trie foreach gone to deep: %d", depth);
     if (trie->used)
     {
@@ -115,7 +123,7 @@ static int _trie_foreach_node(const Trie *trie, void (*callback)(uint32_t ip_add
     }
     for (uint i = 0; i < MAX_CHILD_COUNT; ++i)
     {
-        if (trie->children[i] != nullptr)
+        if (trie->children[i] != NULL)
         {
             VerifyOrReturnError(_trie_foreach_node(trie->children[i], callback, ((ip_addr << 1) | i), depth + 1) ==
                                     TRIE_OK,
