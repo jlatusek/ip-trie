@@ -14,7 +14,7 @@ static bool trie_has_child(Trie *trie)
 Trie *trie_init()
 {
     Trie *trie = calloc(1, sizeof(Trie));
-//    VerifyOrDie(trie != NULL);
+    //    VerifyOrDie(trie != NULL);
     return trie;
 }
 
@@ -45,7 +45,7 @@ int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 
 int trie_del(Trie *trie, uint32_t base, uint8_t mask)
 {
-    VerifyOrReturnErrorWithMsg(mask < IP_LEN, TRIE_ERROR, "Value passed as mask is too high");
+    VerifyOrReturnErrorWithMsg(mask <= IP_LEN, TRIE_ERROR, "Value passed as mask is too high %d > 32", mask);
 
     int ret = TRIE_OK;
 
@@ -83,11 +83,25 @@ int trie_del(Trie *trie, uint32_t base, uint8_t mask)
     return ret;
 }
 
-char trie_check(const Trie *trie, uint32_t ip)
+int trie_check(const Trie *trie, uint32_t ip)
 {
-    (void)trie;
-    (void)ip;
-    return 0;
+    const Trie *root = trie;
+    uint i;
+    for (i = 0; i < IP_LEN; ++i)
+    {
+        uint bit = (ip >> (IP_LEN - 1 - i)) & 0x01;
+        Trie *child = root->children[bit];
+        if(child == NULL && root->used)
+        {
+            return (int)i;
+        }
+        else if (child == NULL)
+        {
+            return -1;
+        }
+        root = child;
+    }
+    return -1;
 }
 
 static int _trie_deinit(Trie *trie, uint depth)
