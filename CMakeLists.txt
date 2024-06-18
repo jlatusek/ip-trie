@@ -63,3 +63,8 @@ add_custom_target(cppcheck
         --output-file=${CMAKE_CURRENT_BINARY_DIR}/cppcheck.xml ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/tests
         COMMAND cppcheck-htmlreport --file=${CMAKE_CURRENT_BINARY_DIR}/cppcheck.xml --report-dir=${CMAKE_CURRENT_BINARY_DIR}/cppcheck
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_custom_target(valgrind
+        COMMAND valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ${CMAKE_CURRENT_BINARY_DIR}/trie_test  > /dev/null
+        COMMAND valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ${CMAKE_CURRENT_BINARY_DIR}/ip_test  > /dev/null
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
