@@ -1,4 +1,6 @@
 #include "ip.h"
+#include "CodeUtils.h"
+#include "Trie.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -39,4 +41,45 @@ int ip_to_str(const uint32_t ip, char *ip_str, int len)
         return IP_STR_TOO_SHORT;
     }
     return IP_OK;
+}
+
+static Trie *trie;
+
+int init()
+{
+    trie = trie_init();
+    VerifyOrReturnError(trie != NULL, TRIE_ERROR);
+    return TRIE_OK;
+}
+
+int deinit()
+{
+    return trie_deinit(trie);
+}
+
+int add(unsigned int base, char mask)
+{
+    if (trie == NULL)
+    {
+        trie = trie_init();
+    }
+    return trie_add(trie, base, mask);
+}
+
+int del(unsigned int base, char mask)
+{
+    if (trie == NULL)
+    {
+        return TRIE_ERROR;
+    }
+    return trie_del(trie, base, mask);
+}
+
+int check(unsigned int ip)
+{
+    if (trie == NULL)
+    {
+        return TRIE_ERROR;
+    }
+    return trie_check(trie, ip);
 }

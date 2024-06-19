@@ -14,7 +14,7 @@ static bool trie_has_child(Trie *trie)
 Trie *trie_init()
 {
     Trie *trie = calloc(1, sizeof(Trie));
-    //    VerifyOrDie(trie != NULL);
+    VerifyOrDie(trie != NULL);
     return trie;
 }
 
@@ -91,17 +91,14 @@ int trie_check(const Trie *trie, uint32_t ip)
     {
         uint bit = (ip >> (IP_LEN - 1 - i)) & 0x01;
         Trie *child = root->children[bit];
-        if(child == NULL && root->used)
+        if (child == NULL && root->used)
         {
             return (int)i;
         }
-        else if (child == NULL)
-        {
-            return -1;
-        }
+        VerifyOrReturnError(child != NULL, TRIE_ERROR);
         root = child;
     }
-    return -1;
+    return TRIE_ERROR;
 }
 
 static int _trie_deinit(Trie *trie, uint depth)
