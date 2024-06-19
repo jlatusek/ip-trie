@@ -1,7 +1,4 @@
-# This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
-# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
 name: Build and test project
-
 on:
   push:
     branches: [ "main" ]
@@ -14,9 +11,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-24.04
-
     steps:
-    
     - name: Checkout repository
       uses: actions/checkout@v4 
       with:
