@@ -87,18 +87,19 @@ int trie_check(const Trie *trie, uint32_t ip)
 {
     const Trie *root = trie;
     uint i;
-    for (i = 0; i < IP_LEN; ++i)
+    int ret = TRIE_ERROR;
+    for (i = 0; i <= IP_LEN; ++i)
     {
         uint bit = (ip >> (IP_LEN - 1 - i)) & 0x01;
         Trie *child = root->children[bit];
-        if (child == NULL && root->used)
+        if (root->used)
         {
-            return (int)i;
+            ret = (int)i;
         }
-        VerifyOrReturnError(child != NULL, TRIE_ERROR);
+        VerifyOrReturnError(child != NULL, ret);
         root = child;
     }
-    return TRIE_ERROR;
+    return ret;
 }
 
 static int _trie_deinit(Trie *trie, uint depth)
