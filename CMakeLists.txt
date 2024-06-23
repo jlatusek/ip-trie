@@ -58,8 +58,15 @@ add_test(NAME trie_test COMMAND trie_test)
 add_test(NAME ip_test COMMAND ip_test)
 add_test(NAME tool_test COMMAND tool_test)
 add_test(NAME ip_test_not_init COMMAND ip_test_not_init)
+SET(TESTS
+        trie_test
+        ip_test
+        tool_test
+        ip_test_not_init
+)
 
 add_custom_target(coverage
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
         COMMAND lcov --capture --directory . --output-file coverage.info
         COMMAND lcov --remove coverage.info 'third_party/Unity/*' --output-file coverage.info
         COMMAND genhtml --branch-coverage coverage.info --output-directory coverage
@@ -78,12 +85,12 @@ add_custom_target(cppcheck
 add_custom_target(valgrind
         COMMAND valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ${CMAKE_CURRENT_BINARY_DIR}/trie_test > /dev/null
         COMMAND valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ${CMAKE_CURRENT_BINARY_DIR}/ip_test > /dev/null
+        COMMAND valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ${CMAKE_CURRENT_BINARY_DIR}/tool_test > /dev/null
+        COMMAND valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ${CMAKE_CURRENT_BINARY_DIR}/ip_test_not_init > /dev/null
+        DEPENDS ${TESTS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-        DEPENDS trie_test
-        ip_test
-        tool_test
-        ip_test_not_init
+        DEPENDS ${TESTS}
 )

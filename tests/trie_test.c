@@ -121,6 +121,33 @@ void test_del_ip(void)
     TEST_ASSERT_EQUAL(TRIE_OK, trie_foreach(trie, ip_callback));
 }
 
+void test_del_ip_sub_net(void)
+{
+    TEST_ASSERT_EQUAL(IP_OK, str_to_ip("255.0.0.0", &expected_ip[0]));
+    expected_mask[0] = 8;
+    TEST_ASSERT_EQUAL(IP_OK, str_to_ip("255.255.0.0", &expected_ip[1]));
+    expected_mask[1] = 16;
+    TEST_ASSERT_EQUAL(IP_OK, str_to_ip("255.255.255.0", &expected_ip[2]));
+    expected_mask[2] = 24;
+
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, expected_ip[i], expected_mask[i]));
+    }
+
+    TEST_ASSERT_EQUAL(TRIE_OK, trie_foreach(trie, ip_callback));
+    TEST_ASSERT_EACH_EQUAL_CHAR(1, ip_found, 3);
+    TEST_ASSERT_EACH_EQUAL_CHAR(0, ip_found + 3, MAX_EXPECTED_IP - 3);
+
+    TEST_ASSERT_EQUAL(TRIE_OK, trie_del(trie, expected_ip[1], expected_mask[1]));
+    memset(ip_found, 0, sizeof(ip_found[0]) * MAX_EXPECTED_IP);
+    TEST_ASSERT_EQUAL(TRIE_OK, trie_foreach(trie, ip_callback));
+    TEST_ASSERT_TRUE(ip_found[0]);
+    TEST_ASSERT_FALSE(ip_found[1]);
+    TEST_ASSERT_TRUE(ip_found[2]);
+    TEST_ASSERT_EACH_EQUAL_CHAR(0, ip_found + 3, MAX_EXPECTED_IP - 3);
+}
+
 void test_check_ip(void)
 {
     TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, numb_to_ip(192, 168, 1, 0), 24));
@@ -141,5 +168,6 @@ int main(void)
     RUN_TEST(test_add_ip_loop);
     RUN_TEST(test_del_ip);
     RUN_TEST(test_check_ip);
+    RUN_TEST(test_del_ip_sub_net);
     return UNITY_END();
 }
