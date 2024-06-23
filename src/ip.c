@@ -34,6 +34,5 @@ int check(unsigned int ip)
 
 int print_all_ip_addr()
 {
-    VerifyOrReturnError(trie != NULL, TRIE_ERROR);
     return trie_print(trie);
 }
