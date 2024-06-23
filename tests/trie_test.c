@@ -1,5 +1,6 @@
 #include "Trie.h"
 #include "ip.h"
+#include "ip_tool.h"
 
 #include "unity.h"
 
@@ -86,21 +87,23 @@ void test_add_ip_loop(void)
     for (unsigned int i = 0; i < 32; i++)
     {
         expected_mask[i] = i;
-        expected_ip[i] = (i * 0xAAAAAAAA) & (0xFFFFFFFF << (IP_LEN - expected_mask[i]));
+        expected_ip[i] = (i * 0xFFAAAAAA) & (0xFFFFFFFF << (IP_LEN - expected_mask[i]));
         TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, expected_ip[i], expected_mask[i]));
         TEST_ASSERT_EQUAL(TRIE_OK, trie_foreach(trie, ip_callback));
         TEST_ASSERT_EACH_EQUAL_CHAR(1, ip_found, i + 1);
-        memset(ip_found, 0, sizeof(ip_found[0]) * 32);
+        TEST_ASSERT_EACH_EQUAL_CHAR(0, ip_found + i + 1, MAX_EXPECTED_IP - i - 1);
+        memset(ip_found, 0, sizeof(ip_found[0]) * MAX_EXPECTED_IP);
     }
-    for (unsigned int i = 0; i < 32; i++)
+    for (unsigned int i = 1; i < 32; i++)
     {
-        int exp_idx = (int)i + 32;
+        int exp_idx = (int)i + 31;
         expected_mask[exp_idx] = i;
-        expected_ip[exp_idx] = (i * 0xBBBBBBBB) & (0xFFFFFFFF << (IP_LEN - expected_mask[i]));
+        expected_ip[exp_idx] = (i * 0x5BBBBBBB) & (0xFFFFFFFF << (IP_LEN - expected_mask[exp_idx]));
         TEST_ASSERT_EQUAL(TRIE_OK, trie_add(trie, expected_ip[exp_idx], expected_mask[exp_idx]));
         TEST_ASSERT_EQUAL(TRIE_OK, trie_foreach(trie, ip_callback));
         TEST_ASSERT_EACH_EQUAL_CHAR(1, ip_found, exp_idx + 1);
-        memset(ip_found, 0, sizeof(ip_found[0]) * 32);
+        TEST_ASSERT_EACH_EQUAL_CHAR(0, ip_found + exp_idx + 1, MAX_EXPECTED_IP - exp_idx - 1);
+        memset(ip_found, 0, sizeof(ip_found[0]) * MAX_EXPECTED_IP);
     }
 }
 
