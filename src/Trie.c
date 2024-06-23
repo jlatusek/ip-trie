@@ -1,6 +1,7 @@
 #include "Trie.h"
 
 #include "CodeUtils.h"
+#include "ip_tool.h"
 #include "ip.h"
 
 #include <stdio.h>
@@ -14,7 +15,7 @@ static bool trie_has_child(Trie *trie)
 Trie *trie_init()
 {
     Trie *trie = calloc(1, sizeof(Trie));
-    //    VerifyOrDie(trie != NULL);
+    VerifyOrDie(trie != NULL);
     return trie;
 }
 
@@ -28,6 +29,7 @@ int trie_free(Trie *trie)
 
 int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     Trie *root = trie;
     for (int i = 0; i < mask; ++i)
     {
@@ -45,6 +47,7 @@ int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 
 int trie_del(Trie *trie, uint32_t base, uint8_t mask)
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     VerifyOrReturnErrorWithMsg(mask <= IP_LEN, TRIE_ERROR, "Value passed as mask is too high %d > 32", mask);
 
     int ret = TRIE_OK;
@@ -85,23 +88,22 @@ int trie_del(Trie *trie, uint32_t base, uint8_t mask)
 
 int trie_check(const Trie *trie, uint32_t ip)
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     const Trie *root = trie;
     uint i;
-    for (i = 0; i < IP_LEN; ++i)
+    int ret = TRIE_ERROR;
+    for (i = 0; i <= IP_LEN; ++i)
     {
         uint bit = (ip >> (IP_LEN - 1 - i)) & 0x01;
         Trie *child = root->children[bit];
-        if(child == NULL && root->used)
+        if (root->used)
         {
-            return (int)i;
+            ret = (int)i;
         }
-        else if (child == NULL)
-        {
-            return -1;
-        }
+        VerifyOrReturnError(child != NULL, ret);
         root = child;
     }
-    return -1;
+    return ret;
 }
 
 static int _trie_deinit(Trie *trie, uint depth)
@@ -149,6 +151,7 @@ static int _trie_foreach_node(const Trie *trie, void (*callback)(uint32_t ip_add
 
 int trie_foreach(const Trie *trie, void (*callback)(uint32_t ip_addr, uint8_t mask))
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     return _trie_foreach_node(trie, callback, 0, 0);
 }
 
