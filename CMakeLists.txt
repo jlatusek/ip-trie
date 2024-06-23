@@ -10,6 +10,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/Unity)
 add_library(ip_trie_lib OBJECT
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Trie.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ip.c
+        src/ip_tool.c
 )
 
 target_compile_options(ip_trie_lib PRIVATE

@@ -1,6 +1,7 @@
 #include "unity.h"
 
 #include "ip.h"
+#include "ip_tool.h"
 
 void setUp(void)
 {

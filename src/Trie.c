@@ -1,6 +1,7 @@
 #include "Trie.h"
 
 #include "CodeUtils.h"
+#include "ip_tool.h"
 #include "ip.h"
 
 #include <stdio.h>
@@ -28,6 +29,7 @@ int trie_free(Trie *trie)
 
 int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     Trie *root = trie;
     for (int i = 0; i < mask; ++i)
     {
@@ -45,6 +47,7 @@ int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 
 int trie_del(Trie *trie, uint32_t base, uint8_t mask)
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     VerifyOrReturnErrorWithMsg(mask <= IP_LEN, TRIE_ERROR, "Value passed as mask is too high %d > 32", mask);
 
     int ret = TRIE_OK;
@@ -85,6 +88,7 @@ int trie_del(Trie *trie, uint32_t base, uint8_t mask)
 
 int trie_check(const Trie *trie, uint32_t ip)
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     const Trie *root = trie;
     uint i;
     int ret = TRIE_ERROR;
@@ -147,6 +151,7 @@ static int _trie_foreach_node(const Trie *trie, void (*callback)(uint32_t ip_add
 
 int trie_foreach(const Trie *trie, void (*callback)(uint32_t ip_addr, uint8_t mask))
 {
+    VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     return _trie_foreach_node(trie, callback, 0, 0);
 }
 
