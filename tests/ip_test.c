@@ -4,10 +4,12 @@
 
 void setUp(void)
 {
+    init();
 }
 
 void tearDown(void)
 {
+    deinit();
 }
 
 void test_str_to_ip(void)
@@ -52,7 +54,6 @@ void test_add_ip(void)
     TEST_ASSERT_EQUAL(IP_OK, add(numb_to_ip(10, 10, 0, 0), 16));
     TEST_ASSERT_EQUAL(IP_OK, add(numb_to_ip(10, 10, 10, 0), 24));
     TEST_ASSERT_EQUAL(IP_OK, add(numb_to_ip(10, 10, 10, 10), 32));
-    deinit();
 }
 
 void test_del_ip(void)
@@ -66,7 +67,6 @@ void test_del_ip(void)
     TEST_ASSERT_EQUAL(IP_OK, del(numb_to_ip(10, 10, 10, 0), 24));
     TEST_ASSERT_EQUAL(IP_OK, del(numb_to_ip(10, 10, 10, 10), 32));
     TEST_ASSERT_EQUAL(IP_ERROR, del(numb_to_ip(10, 10, 10, 10), 32));
-    deinit();
 }
 
 void test_check_ip(void)
@@ -75,15 +75,15 @@ void test_check_ip(void)
     TEST_ASSERT_EQUAL(IP_OK, add(numb_to_ip(10, 10, 0, 0), 16));
     TEST_ASSERT_EQUAL(IP_OK, add(numb_to_ip(10, 10, 10, 0), 24));
     TEST_ASSERT_EQUAL(IP_OK, add(numb_to_ip(10, 10, 10, 10), 32));
-//    TODO fix this test
+
     TEST_ASSERT_EQUAL(8, check(numb_to_ip(255, 0, 0, 0)));
     TEST_ASSERT_EQUAL(16, check(numb_to_ip(10, 10, 0, 0)));
     TEST_ASSERT_EQUAL(24, check(numb_to_ip(10, 10, 10, 0)));
     TEST_ASSERT_EQUAL(32, check(numb_to_ip(10, 10, 10, 10)));
-    TEST_ASSERT_EQUAL(IP_ERROR, check(numb_to_ip(10, 10, 10, 11)));
-    deinit();
+    TEST_ASSERT_EQUAL(24, check(numb_to_ip(10, 10, 10, 11)));
+    TEST_ASSERT_EQUAL(16, check(numb_to_ip(10, 10, 11, 11)));
+    TEST_ASSERT_EQUAL(IP_ERROR, check(numb_to_ip(10, 16, 11, 11)));
 }
-
 
 int main(void)
 {
