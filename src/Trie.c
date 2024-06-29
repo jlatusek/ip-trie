@@ -29,6 +29,7 @@ int trie_free(Trie *trie)
 
 int trie_add(Trie *trie, uint32_t base, uint8_t mask)
 {
+    VerifyOrReturnErrorWithMsg(mask <= IP_LEN, TRIE_ERROR, "Value passed as mask is too high %d > 32", mask);
     VerifyOrReturnErrorWithMsg(trie != NULL, TRIE_ERROR, "Provided trie is NULL");
     Trie *root = trie;
     for (int i = 0; i < mask; ++i)
