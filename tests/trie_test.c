@@ -161,6 +161,12 @@ void test_check_ip(void)
     TEST_ASSERT_EQUAL(24, trie_check(trie, numb_to_ip(192, 168, 1, 1)));
 }
 
+void test_too_long_mask(void)
+{
+    TEST_ASSERT_EQUAL(TRIE_ERROR, trie_add(trie, numb_to_ip(192, 168, 1, 0), 33));
+    TEST_ASSERT_EQUAL(TRIE_ERROR, trie_add(trie, numb_to_ip(192, 168, 1, 0), 255));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -169,5 +175,6 @@ int main(void)
     RUN_TEST(test_del_ip);
     RUN_TEST(test_check_ip);
     RUN_TEST(test_del_ip_sub_net);
+    RUN_TEST(test_too_long_mask);
     return UNITY_END();
 }
